@@ -8,6 +8,20 @@ app.use(bodyParser.json());
 
 let id = 1;
 const items = [];
+const token = {};
+
+app.get('/authorize', (req, res) => {
+    if (token.key !== undefined) {
+        setTimeout(() => {
+            res.status(500).send('Already authorize')
+        }, 2000);
+    } else {
+        token['key'] = Math.floor(Math.random() * 1e10);
+        setTimeout(() => {
+            res.send(token)
+        }, 2000);
+    }
+});
 
 app.get('/items', (req, res) => {
     setTimeout(() => {
@@ -16,33 +30,54 @@ app.get('/items', (req, res) => {
 });
 
 app.post('/items', (req, res) => {
-    items.push({
-        ...req.body,
-        id: id++
-    });
+    const key = req.get('key');
+    if (key === undefined || +key !== token.key){
+        setTimeout(() => {
+            res.status(500).send('Wrong authorization');
+        }, 2000);
+    } else {
+        items.push({
+            ...req.body,
+            id: id++
+        });
 
-    res.json(items[items.length - 1]);
+        res.json(items[items.length - 1]);
+    }
 });
 
 app.put('/items/:itemId', (req, res) => {
-    const foundItem = items.find(item => item.id === parseInt(req.params.itemId));
+    const key = req.get('key');
+    if (key === undefined || +key !== token.key){
+        setTimeout(() => {
+            res.status(500).send('Wrong authorization');
+        }, 2000);
+    } else {
+        const foundItem = items.find(item => item.id === parseInt(req.params.itemId));
 
-    Object.keys(req.body).forEach(key => {
-        if (key !== 'id') {
-            foundItem[key] = req.body[key];
-        }
-    });
+        Object.keys(req.body).forEach(key => {
+            if (key !== 'id') {
+                foundItem[key] = req.body[key];
+            }
+        });
 
-    res.json(foundItem);
+        res.json(foundItem);
+    }
 });
 
 app.delete('/items/:itemId', (req, res) => {
-    const foundIndex = items.findIndex(item => item.id === parseInt(req.params.itemId));
-    const foundItem = items[foundIndex];
+    const key = req.get('key');
+    if (key === undefined || +key !== token.key){
+        setTimeout(() => {
+            res.status(500).send('Wrong authorization');
+        }, 2000);
+    } else {
+        const foundIndex = items.findIndex(item => item.id === parseInt(req.params.itemId));
+        const foundItem = items[foundIndex];
 
-    items.splice(foundIndex, 1);
+        items.splice(foundIndex, 1);
 
-    res.json(foundItem);
+        res.json(foundItem);
+    }
 });
 
 app.listen(3000, () => {
