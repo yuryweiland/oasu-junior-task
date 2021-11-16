@@ -11,16 +11,10 @@ const items = [];
 const token = {};
 
 app.get('/authorize', (req, res) => {
-    if (token.key !== undefined) {
-        setTimeout(() => {
-            res.status(500).send('Already authorize')
-        }, 2000);
-    } else {
         token['key'] = Math.floor(Math.random() * 1e10);
         setTimeout(() => {
             res.send(token)
         }, 2000);
-    }
 });
 
 app.get('/items', (req, res) => {
